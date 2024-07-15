@@ -45,10 +45,6 @@ class BaseCRUD():
         self.db_path = db_path
         self.table_name = table_name
 
-    def _table_structure(self,session: ddb.Session):
-        session.table(self.db_path, self.table_name, "db_table")
-        return session.run("schema(db_table).colDefs")
-
     def upsert(self, session: ddb.Session, data: DataFrame):
         upserter = ddb.TableUpserter(
             dbPath=self.db_path,
