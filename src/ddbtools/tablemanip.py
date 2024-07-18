@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 import dolphindb as ddb
-from ddbtools.log import get_logger
-logger = get_logger(__name__)
+from loguru import logger
 
 @dataclass
 class DbColumn:
@@ -25,7 +24,7 @@ def create_dimensional_table(
 ):
     if session.run(f"existsTable('{db_name}',`{table_name});"):
         logger.info(f"在数据库 {db_name} 下表 {table_name} 已存在，请删除重建或修改原表")
-        return
+        return f"在数据库 {db_name} 下表 {table_name} 已存在，请删除重建或修改原表"
 
     if isinstance(columns, DbColumn):
         columns = [columns]
@@ -53,6 +52,7 @@ def create_dimensional_table(
     """
     session.run(script)
     logger.info(f"在数据库 {db_name} 下创建表 {table_name} 成功")
+    return f"在数据库 {db_name} 下创建表 {table_name} 成功"
 
 
 def create_attribute_table(
@@ -78,8 +78,10 @@ def create_attribute_table(
         """
         session.run(script)
         logger.info(f"在数据库 {db_name} 下创建表 {table_name} 成功")
+        return f"在数据库 {db_name} 下创建表 {table_name} 成功"
     else:
         logger.info(f"在数据库 {db_name} 下表 {table_name} 已存在,跳过")
+        return f"在数据库 {db_name} 下表 {table_name} 已存在,跳过"
 
 
 def delete_table(session: ddb.Session, db_name: str, table_name: str): ...
