@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from typing import List
 import dolphindb as ddb
-
+from ddbtools.log import get_logger
+logger = get_logger(__name__)
 
 @dataclass
 class DbColumn:
@@ -23,7 +24,7 @@ def create_dimensional_table(
     columns: DbColumn | List[DbColumn],
 ):
     if session.run(f"existsTable('{db_name}',`{table_name});"):
-        # log(f"在数据库 {db_name} 下表 {table_name} 已存在，请删除重建或修改原表)
+        logger.info(f"在数据库 {db_name} 下表 {table_name} 已存在，请删除重建或修改原表")
         return
 
     if isinstance(columns, DbColumn):
@@ -51,7 +52,7 @@ def create_dimensional_table(
         )
     """
     session.run(script)
-    # log(f"在数据库 {db_name} 下创建表 {table_name} 成功")
+    logger.info(f"在数据库 {db_name} 下创建表 {table_name} 成功")
 
 
 def create_attribute_table(
@@ -63,7 +64,6 @@ def create_attribute_table(
     dt_dtype: str = "DATE",
 ):
     if not session.run(f"existsTable('{db_name}',`{table_name});"):
-        # log(f"在数据库 {db_name} 下表 {table_name} 不存在, 正在创建")
         script = f"""
         create table "{db_name}"."{table_name}"(
             datetime {dt_dtype}[comment="时间", compress="delta"]
@@ -77,7 +77,9 @@ def create_attribute_table(
         sortKeyMappingFunction=[hashBucket{{, 500}}]
         """
         session.run(script)
-        # log(f"在数据库 {db_name} 下创建表 {table_name} 成功")
+        logger.info(f"在数据库 {db_name} 下创建表 {table_name} 成功")
+    else:
+        logger.info(f"在数据库 {db_name} 下表 {table_name} 已存在,跳过")
 
 
 def delete_table(session: ddb.Session, db_name: str, table_name: str): ...

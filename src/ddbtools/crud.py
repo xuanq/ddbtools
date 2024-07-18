@@ -71,7 +71,7 @@ class BaseCRUD():
             for cond in conds:
                 table = table.where(cond.clause)
 
-        if "_attr_" in self.table_name and panel:
+        if "attr_" in self.table_name and panel:
             value = (
                 table.select("value")
                 .pivotby(index="datetime,code", column="attribute")
