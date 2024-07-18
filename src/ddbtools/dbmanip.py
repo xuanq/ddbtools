@@ -11,9 +11,9 @@ def create_db(session: ddb.Session,dbname:str,partition_plan:str,engine:str="TSD
             engine='{engine}'
             """
         session.run(CREATE_DATABASE_SCRIPT)
-        logger.debug(f"数据库 {dbname} 创建成功")
+        logger.info(f"数据库 {dbname} 创建成功")
     else:
-        logger.debug(f"数据库 {dbname} 已存在, 跳过")
+        logger.info(f"数据库 {dbname} 已存在, 跳过")
 
 # 删除数据库
 def delete_db(session: ddb.Session,dbname:str):
