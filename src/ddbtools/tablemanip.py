@@ -21,6 +21,7 @@ def create_dimensional_table(
     db_name: str,
     table_name: str,
     columns: DbColumn | List[DbColumn],
+    partition_by: str = None,
 ):
     if session.run(f"existsTable('{db_name}',`{table_name});"):
         logger.info(f"在数据库 {db_name} 下表 {table_name} 已存在，请删除重建或修改原表")
@@ -50,6 +51,8 @@ def create_dimensional_table(
             {cols_str}
         )
     """
+    if partition_by:
+        script = script + f"\npartitioned by {partition_by},"
     session.run(script)
     logger.info(f"在数据库 {db_name} 下创建表 {table_name} 成功")
     return f"在数据库 {db_name} 下创建表 {table_name} 成功"
