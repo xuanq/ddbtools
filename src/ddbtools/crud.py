@@ -1,10 +1,11 @@
-from typing import List
+from typing import Dict, List
 import dolphindb as ddb
 from pandas import DataFrame
 from datetime import datetime
 from dataclasses import dataclass,field
 from enum import Enum
-
+from ddbtools import get_table_info
+import pandas as pd
 class Comparator(Enum):
     eq = "="
     gt = ">="
@@ -83,3 +84,51 @@ class BaseCRUD():
                 return value.set_index(["datetime", "code"]).sort_index()
         else:
             return table.toDF()
+
+DTYPE_DDB2PD = {
+    "BOOL": "boolean",
+    "CHAR": "Int8",
+    "SHORT": "Int16",
+    "INT": "Int32",
+    "LONG": "Int64",
+    "DATE": "datetime64",
+    "MONTH": "datetime64",
+    "TIME": "datetime64",
+    "DATETIME": "datetime64",
+    "MINUTE": "datetime64",
+    "SECOND": "datetime64",
+    "NANOTIME": "datetime64",
+    "TIMESTAMP": "datetime64",
+    "NANOTIMESTAMP": "datetime64",
+    "FLOAT": "Float32",
+    "DOUBLE": "float64",
+    "SYMBOL": "object",
+    "STRING": "object",
+}
+
+class DBDf(pd.DataFrame):
+    def __init__(self, session: ddb.Session, db_path: str, table_name: str, data:pd.DataFrame=None):
+        db_cols :pd.DataFrame= get_table_info(session, db_path, table_name)
+        db_cols["pd_dtype"] = db_cols["typeString"].map(DTYPE_DDB2PD)
+        super().__init__(columns=db_cols["name"])
+        self._column_names_types = db_cols.set_index("name")["pd_dtype"].to_dict()
+
+        if data is not None:        
+            data = pd.DataFrame(data).reset_index()
+            commom_columns = data.columns.intersection(db_cols["name"])
+            self[commom_columns] = data[commom_columns]
+        
+        self._apply_column_types()
+   
+        
+    def _apply_column_types(self):
+        for name, dtype in self._column_names_types.items():
+            # 需要做时间格式转化
+            if pd.api.types.is_datetime64_dtype(dtype):
+                self[name] = pd.to_datetime(self[name])
+
+                if pd.api.types.is_datetime64tz_dtype(self[name]):
+                    # 已有时区，将时区去除(默认转化为东八区时间)
+                    self[name] = self[name].dt.tz_convert("PRC").dt.tz_localize(None)
+            elif self[name].dtype != dtype:
+                self[name] = self[name].astype(dtype, errors="ignore")
