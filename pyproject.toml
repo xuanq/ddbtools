@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ddbtools"
-version = "0.1.7"
+version = "0.1.8"
 description = ""
 authors = ["XUANQI 幻14 <xuan.q@foxmail.com>"]
 license = "MIT"
