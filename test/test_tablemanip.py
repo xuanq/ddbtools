@@ -14,5 +14,5 @@ def get_db() -> ddb.Session:
 if __name__ == "__main__":
     session = get_db()
     print(get_all_tables(session,"dfs://stockdaily"))
-    print(get_table_info(session,"dfs://stockdaily","attr_double"))
+    print(get_table_info(session,"dfs://infos","stock"))
     print(get_table_columns(session,"dfs://stockdaily","attr_double"))

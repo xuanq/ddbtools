@@ -20,10 +20,10 @@ def get_table_info(session: ddb.Session, db_name: str, table_name: str):
         {
             "db_name": db_name,
             "table_name": table_name,
-            "partition_columns": table_schema["partitionColumnName"],
-            "sort_columns": table_schema["sortColumns"],
-            "keep_duplicates": table_schema["keepDuplicates"],
-            "sort_key_mapping_function": table_schema["sortKeyMappingFunction"],
+            "partition_columns": table_schema.get("partitionColumnName"),
+            "sort_columns": table_schema.get("sortColumns"),
+            "keep_duplicates": table_schema.get("keepDuplicates"),
+            "sort_key_mapping_function": table_schema.get("sortKeyMappingFunction"),
         }
     )
 
