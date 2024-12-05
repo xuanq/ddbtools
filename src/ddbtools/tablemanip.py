@@ -1,3 +1,4 @@
+import pandas as pd
 from dataclasses import dataclass
 from typing import List, Literal
 import dolphindb as ddb
@@ -14,7 +15,29 @@ class DbColumn:
 
 def get_table_info(session: ddb.Session, db_name: str, table_name: str):
     session.table(db_name, table_name, "db_table")
-    return session.run("schema(db_table).colDefs")
+    table_schema = session.run("schema(db_table)")
+    return pd.Series(
+        {
+            "db_name": db_name,
+            "table_name": table_name,
+            "partition_columns": table_schema["partitionColumnName"],
+            "sort_columns": table_schema["sortColumns"],
+            "keep_duplicates": table_schema["keepDuplicates"],
+            "sort_key_mapping_function": table_schema["sortKeyMappingFunction"],
+        }
+    )
+
+def get_table_columns(session: ddb.Session, db_name: str, table_name: str):
+    session.table(db_name, table_name, "db_table")
+    table_schema = session.run("schema(db_table)")
+    col_defs = table_schema["colDefs"].set_index("name")
+    col_defs["compress_methods"] = table_schema["compressMethods"].set_index("name")
+    return col_defs
+
+
+def get_all_tables(session: ddb.Session, db_name: str):
+    session.database("db", dbPath=db_name)
+    return session.run("db.getTables()")
 
 
 def create_table(
@@ -24,8 +47,8 @@ def create_table(
     columns: DbColumn | List[DbColumn],
     partition_by: str = None,
     sortColumns: str = None,
-    keepDuplicates:Literal["ALL","LAST","FIRST"]=None,
-    sortKeyMappingFunction:str=None,
+    keepDuplicates: Literal["ALL", "LAST", "FIRST"] = None,
+    sortKeyMappingFunction: str = None,
 ):
     if session.run(f"existsTable('{db_name}',`{table_name});"):
         logger.info(
