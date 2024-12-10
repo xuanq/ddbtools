@@ -3,7 +3,7 @@ import pandas as pd
 import dolphindb as ddb
 from loguru import logger
 from typing import Dict
-
+from pathlib import Path
 
 # 创建数据库
 def create_db(
@@ -51,7 +51,7 @@ def get_all_dbs(session: ddb.Session):
     )
     dtype_mapping = (
         pd.read_csv(
-            "/home/xuanqi/projects/ddbtools/src/ddbtools/dolphindb_dtype.csv",
+            f"{Path(__file__).parent}/dolphindb_dtype.csv",
             encoding="GBK",
         )
         .set_index("ID")["名称"]
