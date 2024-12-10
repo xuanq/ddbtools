@@ -16,6 +16,8 @@ class DbColumn:
 def get_table_info(session: ddb.Session, db_name: str, table_name: str):
     session.table(db_name, table_name, "db_table")
     table_schema = session.run("schema(db_table)")
+    col_defs = table_schema["colDefs"].set_index("name")
+    col_defs["compress_methods"] = table_schema["compressMethods"].set_index("name")    
     return pd.Series(
         {
             "db_name": db_name,
@@ -24,6 +26,7 @@ def get_table_info(session: ddb.Session, db_name: str, table_name: str):
             "sort_columns": table_schema.get("sortColumns"),
             "keep_duplicates": table_schema.get("keepDuplicates"),
             "sort_key_mapping_function": table_schema.get("sortKeyMappingFunction"),
+            "col_defs": col_defs,
         }
     )
 
