@@ -4,7 +4,7 @@ from pandas import DataFrame
 from datetime import datetime
 from dataclasses import dataclass,field
 from enum import Enum
-from ddbtools import get_table_info
+from ddbtools import get_table_columns
 import pandas as pd
 class Comparator(Enum):
     eq = "="
@@ -108,21 +108,21 @@ DTYPE_DDB2PD = {
 
 class DBDf(pd.DataFrame):
     def __init__(self, session: ddb.Session, db_path: str, table_name: str, data:pd.DataFrame=None):
-        db_cols :pd.DataFrame= get_table_info(session, db_path, table_name)
+        db_cols :pd.DataFrame= get_table_columns(session, db_path, table_name)
         db_cols["pd_dtype"] = db_cols["typeString"].map(DTYPE_DDB2PD)
-        super().__init__(columns=db_cols["name"])
-        self._column_names_types = db_cols.set_index("name")["pd_dtype"].to_dict()
+        super().__init__(columns=db_cols.index)
+        self.attrs["column_names_types"] = db_cols["pd_dtype"].to_dict()
 
         if data is not None:        
             data = pd.DataFrame(data).reset_index()
-            commom_columns = data.columns.intersection(db_cols["name"])
+            commom_columns = data.columns.intersection(db_cols.index)
             self[commom_columns] = data[commom_columns]
         
         self._apply_column_types()
    
         
     def _apply_column_types(self):
-        for name, dtype in self._column_names_types.items():
+        for name, dtype in self.attrs["column_names_types"].items():
             # 需要做时间格式转化
             if pd.api.types.is_datetime64_dtype(dtype):
                 self[name] = pd.to_datetime(self[name])
