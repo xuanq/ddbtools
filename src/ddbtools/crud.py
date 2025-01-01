@@ -2,16 +2,19 @@ from typing import Dict, List
 import dolphindb as ddb
 from pandas import DataFrame
 from datetime import datetime
-from dataclasses import dataclass,field
+from dataclasses import dataclass, field
 from enum import Enum
 from ddbtools import get_table_columns
 import pandas as pd
+
+
 class Comparator(Enum):
     eq = "="
     gt = ">="
     lt = "<="
     like = "like"
     isin = "in"
+
 
 @dataclass
 class Filter:
@@ -39,7 +42,7 @@ class Filter:
                 self.clause = " or ".join(conditions)
 
 
-class BaseCRUD():
+class BaseCRUD:
     key_cols: List[str]
 
     def __init__(self, db_path: str, table_name: str) -> None:
@@ -85,6 +88,7 @@ class BaseCRUD():
         else:
             return table.toDF()
 
+
 DTYPE_DDB2PD = {
     "BOOL": "boolean",
     "CHAR": "Int8",
@@ -106,21 +110,27 @@ DTYPE_DDB2PD = {
     "STRING": "object",
 }
 
+
 class DBDf(pd.DataFrame):
-    def __init__(self, session: ddb.Session, db_path: str, table_name: str, data:pd.DataFrame=None):
-        db_cols :pd.DataFrame= get_table_columns(session, db_path, table_name)
+    def __init__(
+        self,
+        session: ddb.Session,
+        db_path: str,
+        table_name: str,
+        data: pd.DataFrame = None,
+    ):
+        db_cols: pd.DataFrame = get_table_columns(session, db_path, table_name)
         db_cols["pd_dtype"] = db_cols["typeString"].map(DTYPE_DDB2PD)
         super().__init__(columns=db_cols.index)
         self.attrs["column_names_types"] = db_cols["pd_dtype"].to_dict()
 
-        if data is not None:        
+        if data is not None:
             data = pd.DataFrame(data).reset_index()
             commom_columns = data.columns.intersection(db_cols.index)
             self[commom_columns] = data[commom_columns]
-        
+
         self._apply_column_types()
-   
-        
+
     def _apply_column_types(self):
         for name, dtype in self.attrs["column_names_types"].items():
             # 需要做时间格式转化
@@ -131,4 +141,18 @@ class DBDf(pd.DataFrame):
                     # 已有时区，将时区去除(默认转化为东八区时间)
                     self[name] = self[name].dt.tz_convert("PRC").dt.tz_localize(None)
             elif self[name].dtype != dtype:
+                if dtype == "boolean":
+                    mapping = {
+                        "TRUE": True,
+                        "True": True,
+                        "true": True,
+                        "是": True,
+                        "1": True,
+                        "FALSE": False,
+                        "False": False,
+                        "false": False,
+                        "否": False,
+                        "0": False,
+                    }
+                    self[name] = self[name].map(mapping)
                 self[name] = self[name].astype(dtype, errors="ignore")
