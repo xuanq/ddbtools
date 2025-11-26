@@ -1,19 +1,19 @@
-[tool.poetry]
+[project]
 name = "ddbtools"
 version = "0.1.14"
 description = ""
-authors = ["XUANQI 幻14 <xuan.q@foxmail.com>"]
-license = "MIT"
+authors = [{ name = "XUANQI 幻14", email = "xuan.q@foxmail.com" }]
+requires-python = ">=3.10,<4"
 readme = "README.md"
+license = "MIT"
+dependencies = [
+    "dolphindb>=3.0.1.0,<4",
+    "loguru>=0.7.2,<0.8",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-dolphindb = "^3.0.1.0"
-loguru = "^0.7.2"
-
-[tool.poetry.group.dev.dependencies]
-black = "^24.4.2"
+[dependency-groups]
+dev = ["black>=24.4.2,<25"]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["uv_build"]
+build-backend = "uv_build"
