@@ -137,7 +137,7 @@ class DBDf(pd.DataFrame):
             if pd.api.types.is_datetime64_dtype(dtype):
                 self[name] = pd.to_datetime(self[name])
 
-                if pd.api.types.is_datetime64tz_dtype(self[name]):
+                if isinstance(self[name], pd.DatetimeTZDtype):
                     # 已有时区，将时区去除(默认转化为东八区时间)
                     self[name] = self[name].dt.tz_convert("PRC").dt.tz_localize(None)
             elif self[name].dtype != dtype:

@@ -14,7 +14,10 @@ dependencies = [
 log = ["loguru>=0.7.2,<0.8"]
 
 [dependency-groups]
-dev = ["black>=24.4.2,<25"]
+dev = [
+    "black>=24.4.2,<25",
+    "pytest>=9.0.1",
+]
 
 
 [build-system]

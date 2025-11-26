@@ -52,7 +52,6 @@ def get_all_dbs(session: ddb.Session):
     dtype_mapping = (
         pd.read_csv(
             f"{Path(__file__).parent}/dolphindb_dtype.csv",
-            encoding="GBK",
         )
         .set_index("ID")["名称"]
         .to_dict()
