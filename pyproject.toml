@@ -8,11 +8,14 @@ readme = "README.md"
 license = "MIT"
 dependencies = [
     "dolphindb>=3.0.1.0,<4",
-    "loguru>=0.7.2,<0.8",
 ]
+
+[project.optional-dependencies]
+log = ["loguru>=0.7.2,<0.8"]
 
 [dependency-groups]
 dev = ["black>=24.4.2,<25"]
+
 
 [build-system]
 requires = ["uv_build"]

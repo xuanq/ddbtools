@@ -22,16 +22,28 @@
 
 ### 安装方式
 
+使用 uv 安装基础版本：
+
+```bash
+uv add ddbtools
+```
+
+安装带有日志功能的版本：
+
+```bash
+uv add ddbtools --optional log
+```
+
 使用 pip 安装：
 
 ```bash
 pip install ddbtools
 ```
 
-或使用 poetry 安装：
+安装带有日志功能的版本：
 
 ```bash
-poetry add ddbtools
+pip install ddbtools[log]
 ```
 
 ## 快速开始
@@ -301,21 +313,56 @@ stock_crud.delete(session, code="AAPL")
 
 ## 日志配置
 
-默认情况下，`ddbtools` 的日志是禁用的。如需启用日志，可以通过以下方式：
+`ddbtools` 支持可选的日志功能，基于 loguru 库。默认情况下，日志是禁用的，且 loguru 不是必需依赖。
+
+### 启用日志功能
+
+1. 首先，确保安装了带有日志功能的版本：
+
+```bash
+uv add ddbtools --optional log
+# 或使用 pip
+pip install ddbtools[log]
+```
+
+2. 然后，在代码中启用日志：
 
 ```python
-from loguru import logger
+from ddbtools import logger
 
 # 启用日志
 logger.enable("ddbtools")
 
-# 配置日志级别和格式
-logger.add(
-    "ddbtools.log",
-    level="INFO",
-    format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}",
-    rotation="10 MB"
-)
+# 配置日志级别和格式（仅当 loguru 已安装时可用）
+try:
+    from loguru import logger as loguru_logger
+    loguru_logger.add(
+        "ddbtools.log",
+        level="INFO",
+        format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}",
+        rotation="10 MB"
+    )
+except ImportError:
+    pass
+```
+
+### 日志级别
+
+支持的日志级别：
+- `debug`: 调试信息
+- `info`: 普通信息
+- `warning`: 警告信息
+- `error`: 错误信息
+
+### 日志禁用
+
+如果需要禁用日志，可以使用以下代码：
+
+```python
+from ddbtools import logger
+
+# 禁用日志
+logger.disable("ddbtools")
 ```
 
 ## 贡献

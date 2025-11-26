@@ -2,7 +2,7 @@ import pandas as pd
 from dataclasses import dataclass
 from typing import List, Literal
 import dolphindb as ddb
-from loguru import logger
+from ddbtools.log import logger
 
 
 @dataclass

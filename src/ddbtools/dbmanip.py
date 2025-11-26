@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import dolphindb as ddb
-from loguru import logger
+from ddbtools.log import logger
 from typing import Dict
 from pathlib import Path
 

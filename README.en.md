@@ -22,16 +22,28 @@
 
 ### Installation Methods
 
+Install basic version using uv:
+
+```bash
+uv add ddbtools
+```
+
+Install with logging support:
+
+```bash
+uv add ddbtools --optional log
+```
+
 Install using pip:
 
 ```bash
 pip install ddbtools
 ```
 
-Or install using poetry:
+Install with logging support:
 
 ```bash
-poetry add ddbtools
+pip install ddbtools[log]
 ```
 
 ## Quick Start
@@ -301,21 +313,56 @@ Inherited from pandas.DataFrame, automatically handles DolphinDB data type conve
 
 ## Log Configuration
 
-By default, logging for `ddbtools` is disabled. To enable logging, you can use the following method:
+`ddbtools` supports optional logging functionality based on the loguru library. By default, logging is disabled and loguru is not a required dependency.
+
+### Enabling Logging
+
+1. First, make sure you have installed the version with logging support:
+
+```bash
+uv add ddbtools --optional log
+# Or using pip
+pip install ddbtools[log]
+```
+
+2. Then, enable logging in your code:
 
 ```python
-from loguru import logger
+from ddbtools import logger
 
 # Enable logging
 logger.enable("ddbtools")
 
-# Configure log level and format
-logger.add(
-    "ddbtools.log",
-    level="INFO",
-    format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}",
-    rotation="10 MB"
-)
+# Configure log level and format (only available if loguru is installed)
+try:
+    from loguru import logger as loguru_logger
+    loguru_logger.add(
+        "ddbtools.log",
+        level="INFO",
+        format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}",
+        rotation="10 MB"
+    )
+except ImportError:
+    pass
+```
+
+### Log Levels
+
+Supported log levels:
+- `debug`: Debug information
+- `info`: General information
+- `warning`: Warning messages
+- `error`: Error messages
+
+### Disabling Logging
+
+If you need to disable logging, you can use the following code:
+
+```python
+from ddbtools import logger
+
+# Disable logging
+logger.disable("ddbtools")
 ```
 
 ## Contribution
