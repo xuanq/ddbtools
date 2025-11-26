@@ -1,36 +1,330 @@
 # ddbtools
 
-#### Description
-dolphindb的建库建表增删改查工具
+## Project Introduction
 
-#### Software Architecture
-Software architecture description
+`ddbtools` is a secondary development tool library based on DolphinDB, providing convenient database operation functions to simplify the creation, modification, and query operations of DolphinDB databases.
 
-#### Installation
+## Core Features
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+- **Database Operations**: Create databases, get database information, get all databases
+- **Table Operations**: Create tables, get table information, get table columns, get all tables, create dimensional tables, create attribute tables
+- **CRUD Operations**: Based on `BaseCRUD` class, supporting flexible filtering conditions
+- **Data Type Conversion**: Automatically handle data type conversion between DolphinDB and pandas
+- **Logging Support**: Logging based on loguru library
 
-#### Instructions
+## Installation
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+### Dependencies
 
-#### Contribution
+- Python 3.10+
+- DolphinDB 3.0.1.0+
+- loguru 0.7.2+
 
-1.  Fork the repository
-2.  Create Feat_xxx branch
-3.  Commit your code
-4.  Create Pull Request
+### Installation Methods
 
+Install using pip:
 
-#### Gitee Feature
+```bash
+pip install ddbtools
+```
 
-1.  You can use Readme\_XXX.md to support different languages, such as Readme\_en.md, Readme\_zh.md
-2.  Gitee blog [blog.gitee.com](https://blog.gitee.com)
-3.  Explore open source project [https://gitee.com/explore](https://gitee.com/explore)
-4.  The most valuable open source project [GVP](https://gitee.com/gvp)
-5.  The manual of Gitee [https://gitee.com/help](https://gitee.com/help)
-6.  The most popular members  [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+Or install using poetry:
+
+```bash
+poetry add ddbtools
+```
+
+## Quick Start
+
+### 1. Connect to DolphinDB Server
+
+```python
+import dolphindb as ddb
+
+# Create DolphinDB session
+session = ddb.Session()
+session.connect("localhost", 8848)
+```
+
+### 2. Database Operations
+
+```python
+from ddbtools import create_db, get_all_dbs, get_db_info
+
+# Create database
+create_db(session, "dfs://test_db", "VALUE date", engine="TSDB")
+
+# Get all databases
+all_dbs = get_all_dbs(session)
+print(all_dbs)
+
+# Get database information
+db_info = get_db_info(session, "dfs://test_db")
+print(db_info)
+```
+
+### 3. Table Operations
+
+```python
+from ddbtools import create_table, get_table_info, get_all_tables, DbColumn
+
+# Define table structure
+columns = [
+    DbColumn(name="date", dtype="DATE", comment="Date", compress="delta"),
+    DbColumn(name="code", dtype="SYMBOL", comment="Code"),
+    DbColumn(name="price", dtype="DOUBLE", comment="Price"),
+    DbColumn(name="volume", dtype="LONG", comment="Volume")
+]
+
+# Create table
+create_table(
+    session, 
+    "dfs://test_db", 
+    "stock", 
+    columns, 
+    partition_by="date",
+    sortColumns="`code`date",
+    keepDuplicates="LAST"
+)
+
+# Get all tables
+all_tables = get_all_tables(session, "dfs://test_db")
+print(all_tables)
+
+# Get table information
+table_info = get_table_info(session, "dfs://test_db", "stock")
+print(table_info)
+```
+
+### 4. CRUD Operations
+
+```python
+from ddbtools import BaseCRUD, Filter, Comparator
+import pandas as pd
+from datetime import date
+
+# Create test data
+data = pd.DataFrame({
+    "date": [date(2023, 1, 1), date(2023, 1, 2)],
+    "code": ["AAPL", "AAPL"],
+    "price": [150.0, 155.0],
+    "volume": [1000000, 2000000]
+})
+
+# Define CRUD class
+class StockCRUD(BaseCRUD):
+    key_cols = ["date", "code"]
+
+# Create CRUD instance
+stock_crud = StockCRUD("dfs://test_db", "stock")
+
+# Insert data
+stock_crud.upsert(session, data)
+
+# Query data
+# Query all data
+all_data = stock_crud.get(session)
+print(all_data)
+
+# Query with filter conditions
+filter1 = Filter(column="date", comparator=Comparator.gt, value=date(2023, 1, 1))
+filter2 = Filter(column="code", value="AAPL")
+filtered_data = stock_crud.get(session, conds=[filter1, filter2])
+print(filtered_data)
+
+# Delete data
+stock_crud.delete(session, code="AAPL")
+```
+
+## API Documentation
+
+### Database Operations
+
+#### `create_db(session, dbname, partition_plan, engine="TSDB")`
+
+Create a database.
+
+- **Parameters**:
+  - `session`: DolphinDB session object
+  - `dbname`: Database name
+  - `partition_plan`: Partition plan
+  - `engine`: Database engine, default "TSDB"
+
+- **Return Value**: Creation result message
+
+#### `get_all_dbs(session)`
+
+Get information about all databases.
+
+- **Parameters**:
+  - `session`: DolphinDB session object
+
+- **Return Value**: DataFrame containing database information
+
+#### `get_db_info(session, dbname)`
+
+Get detailed information about a specified database.
+
+- **Parameters**:
+  - `session`: DolphinDB session object
+  - `dbname`: Database name
+
+- **Return Value**: Database information
+
+### Table Operations
+
+#### `DbColumn` Data Class
+
+Define table column information.
+
+- **Attributes**:
+  - `name`: Column name
+  - `dtype`: Data type
+  - `comment`: Column comment (optional)
+  - `compress`: Compression method (optional)
+
+#### `create_table(session, db_name, table_name, columns, partition_by=None, sortColumns=None, keepDuplicates=None, sortKeyMappingFunction=None)`
+
+Create a table.
+
+- **Parameters**:
+  - `session`: DolphinDB session object
+  - `db_name`: Database name
+  - `table_name`: Table name
+  - `columns`: `DbColumn` object or list
+  - `partition_by`: Partition column (optional)
+  - `sortColumns`: Sort columns (optional)
+  - `keepDuplicates`: Duplicate handling method (optional, values: "ALL", "LAST", "FIRST")
+  - `sortKeyMappingFunction`: Sort key mapping function (optional)
+
+- **Return Value**: Creation result message
+
+#### `get_table_info(session, db_name, table_name)`
+
+Get table information.
+
+- **Parameters**:
+  - `session`: DolphinDB session object
+  - `db_name`: Database name
+  - `table_name`: Table name
+
+- **Return Value**: Series containing table information
+
+#### `get_table_columns(session, db_name, table_name)`
+
+Get table column information.
+
+- **Parameters**:
+  - `session`: DolphinDB session object
+  - `db_name`: Database name
+  - `table_name`: Table name
+
+- **Return Value**: DataFrame containing column information
+
+#### `get_all_tables(session, db_name)`
+
+Get all table names in the database.
+
+- **Parameters**:
+  - `session`: DolphinDB session object
+  - `db_name`: Database name
+
+- **Return Value**: List of table names
+
+#### `create_dimensional_table(session, db_name, table_name, columns, partition_by=None)`
+
+Create a dimensional table.
+
+- **Parameters**:
+  - `session`: DolphinDB session object
+  - `db_name`: Database name
+  - `table_name`: Table name
+  - `columns`: `DbColumn` object or list
+  - `partition_by`: Partition column (optional)
+
+- **Return Value**: Creation result message
+
+#### `create_attribute_table(session, db_name, table_name, code_dtype="SYMBOL", attr_dtype="DOUBLE", dt_dtype="DATE")`
+
+Create an attribute table.
+
+- **Parameters**:
+  - `session`: DolphinDB session object
+  - `db_name`: Database name
+  - `table_name`: Table name
+  - `code_dtype`: Code column data type, default "SYMBOL"
+  - `attr_dtype`: Value column data type, default "DOUBLE"
+  - `dt_dtype`: Time column data type, default "DATE"
+
+- **Return Value**: Creation result message
+
+### CRUD Operations
+
+#### `Comparator` Enum
+
+Comparison operator enum:
+
+- `eq`: Equal to (=)
+- `gt`: Greater than or equal to (>=)
+- `lt`: Less than or equal to (<=)
+- `like`: Fuzzy matching (like)
+- `isin`: Contains (in)
+
+#### `Filter` Data Class
+
+Define query filter conditions.
+
+- **Attributes**:
+  - `column`: Column name
+  - `comparator`: Comparison operator, default `Comparator.eq`
+  - `value`: Comparison value
+
+#### `BaseCRUD` Class
+
+Base CRUD operation class, needs to be inherited.
+
+- **Attributes**:
+  - `key_cols`: Primary key column list (must be defined in subclass)
+
+- **Methods**:
+  - `__init__(self, db_path: str, table_name: str)`: Initialization method
+  - `upsert(self, session: ddb.Session, data: DataFrame)`: Insert or update data
+  - `delete(self, session: ddb.Session, **kwargs)`: Delete data
+  - `get(self, session: ddb.Session, conds: Filter | List[Filter] = None, panel=True)`: Query data
+
+#### `DBDf` Class
+
+Inherited from pandas.DataFrame, automatically handles DolphinDB data type conversion.
+
+- **Methods**:
+  - `__init__(self, session: ddb.Session, db_path: str, table_name: str, data: pd.DataFrame = None)`: Initialization method
+
+## Log Configuration
+
+By default, logging for `ddbtools` is disabled. To enable logging, you can use the following method:
+
+```python
+from loguru import logger
+
+# Enable logging
+logger.enable("ddbtools")
+
+# Configure log level and format
+logger.add(
+    "ddbtools.log",
+    level="INFO",
+    format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}",
+    rotation="10 MB"
+)
+```
+
+## Contribution
+
+1. Fork this repository
+2. Create a Feat_xxx branch
+3. Commit your code
+4. Create a Pull Request
+
+## License
+
+MIT License
