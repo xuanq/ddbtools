@@ -1,0 +1,33 @@
+{
+	"name": "ddbtools dev",
+	"dockerComposeFile": [
+		"docker-compose.yaml"
+	],
+	"service": "devspace",
+	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+	"features": {
+		"ghcr.io/va-h/devcontainers-features/uv:1": {},
+		"ghcr.io/devcontainers/features/github-cli:1": {}
+	},
+	"forwardPorts": [
+		8848
+	],
+	"portsAttributes": {
+		"8848": {
+			"label": "dolphindb"
+		}
+	},
+	"postCreateCommand": "uv lock && uv sync",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.python",
+				"github.vscode-github-actions",
+				"mhutchie.git-graph"
+			],
+			"settings": {
+				"python.venvPath": "/workspaces/${localWorkspaceFolderBasename}/.venv"
+			}
+		}
+	}
+}
