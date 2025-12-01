@@ -11,7 +11,7 @@ jobs:
     name: Publish to PyPI
     runs-on: ubuntu-latest
     environment:
-      name: pypi-deploy
+      name: pypi-publish
     permissions:
       id-token: write
       contents: read
@@ -25,4 +25,5 @@ jobs:
       - name: Build
         run: uv build
       - name: Publish
+
         run: uv publish
