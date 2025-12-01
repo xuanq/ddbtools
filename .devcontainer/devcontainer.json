@@ -26,7 +26,7 @@
 				"mhutchie.git-graph"
 			],
 			"settings": {
-				"python.venvPath": "/workspaces/${localWorkspaceFolderBasename}/.venv"
+				"python.defaultInterpreterPath": "/workspaces/${localWorkspaceFolderBasename}/.venv/bin/python"
 			}
 		}
 	}

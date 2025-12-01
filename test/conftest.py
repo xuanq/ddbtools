@@ -16,7 +16,7 @@ def session():
     """创建DolphinDB会话"""
     # 连接DolphinDB服务器
     sess = ddb.Session()
-    sess.connect("localhost", 8848, "admin", "123456")
+    sess.connect("dolphindb", 8848, "admin", "123456")
     yield sess
     # 关闭会话
     sess.close()
