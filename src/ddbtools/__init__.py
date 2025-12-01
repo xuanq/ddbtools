@@ -7,6 +7,6 @@ except ImportError:
     # 如果无法导入，使用默认版本号（开发环境可能需要）
     __version__ = '0.0.dev0'
 
-from ddbtools.dbmanip import create_db,get_all_dbs,get_db_info
+from ddbtools.dbmanip import create_db,get_all_dbs,get_db_info,delete_db,backup_db,restore_db,migrate_db
 from ddbtools.tablemanip import create_table,get_table_info,DbColumn,get_all_tables,get_table_columns
 from ddbtools.crud import BaseCRUD,Filter,Comparator,DBDf
